@@ -2,92 +2,148 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>Trojan Mega - Control Panel</title>
+    <title>GRoup5br - Ultimate Control</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #0a0f1e; font-family: 'Courier New', monospace; padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; }
-        .header { background: #0d1117; border: 1px solid #2ea043; padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        
+        /* الثيم الداكن (الافتراضي) */
+        body.dark { background: #0a0f1e; color: #c9d1d9; }
+        body.light { background: #f0f0f0; color: #1a1a1a; }
+        
+        body { font-family: 'Courier New', monospace; transition: 0.3s; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        /* الهيدر */
+        .header { padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        body.dark .header { background: #0d1117; border: 1px solid #2ea043; }
+        body.light .header { background: #ffffff; border: 1px solid #2ea043; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        
         .header h2 { color: #ff4d4d; }
-        .server-input { display: flex; gap: 10px; align-items: center; background: #161b22; padding: 10px; border-radius: 8px; }
-        .server-input input { background: #010409; border: 1px solid #30363d; color: #00ff99; padding: 8px; border-radius: 6px; width: 200px; }
-        .server-input button { background: #2ea043; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .logout-btn { background: #21262d; color: #ff4d4d; border: 1px solid #ff4d4d; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
-        .card { background: #0d1117; border: 1px solid #30363d; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .theme-btn { background: #21262d; border: 1px solid #ff4d4d; padding: 8px 16px; border-radius: 6px; cursor: pointer; color: #ff4d4d; }
+        
+        /* أزرار */
+        .btn { padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; border: none; transition: 0.2s; }
+        .btn-danger { background: #ff4d4d; color: white; }
+        .btn-danger:hover { background: #ff0000; transform: scale(1.02); }
+        .btn-success { background: #2ea043; color: white; }
+        .btn-warning { background: #f0883e; color: white; }
+        
+        .stop-btn { background: #ff0000; color: white; padding: 12px 24px; font-size: 18px; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255,0,0,0.7); } 70% { box-shadow: 0 0 0 10px rgba(255,0,0,0); } 100% { box-shadow: 0 0 0 0 rgba(255,0,0,0); } }
+        
+        /* بطاقات */
+        .card { padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        body.dark .card { background: #0d1117; border: 1px solid #30363d; }
+        body.light .card { background: #ffffff; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        
         .card-title { color: #2ea043; font-size: 18px; margin-bottom: 15px; border-bottom: 1px solid #30363d; padding-bottom: 8px; }
-        .btn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
-        .attack-btn { background: #21262d; border: 1px solid #ff4d4d; padding: 10px 15px; color: #ff4d4d; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.1s; font-size: 13px; }
-        .attack-btn:hover { background: #ff4d4d; color: #000; box-shadow: 0 0 10px #ff4d4d; }
-        .output { background: #010409; border: 1px solid #2ea043; padding: 15px; border-radius: 8px; color: #00ff99; font-family: monospace; font-size: 12px; min-height: 250px; overflow-y: auto; white-space: pre-wrap; }
-        .spam-area { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
-        .spam-area input { flex: 1; background: #010409; border: 1px solid #30363d; color: white; padding: 8px; border-radius: 6px; }
-        .status { display: inline-block; background: #2ea043; color: #000; padding: 4px 10px; border-radius: 20px; font-size: 11px; margin-left: 10px; }
-        .status-warning { background: #ff4d4d; }
+        
+        .btn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+        .attack-btn { background: #21262d; border: 1px solid #ff4d4d; padding: 10px; color: #ff4d4d; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .attack-btn:hover { background: #ff4d4d; color: #000; }
+        
+        .output { background: #010409; border: 1px solid #2ea043; padding: 15px; border-radius: 8px; color: #00ff99; font-family: monospace; font-size: 12px; min-height: 300px; overflow-y: auto; white-space: pre-wrap; }
+        
+        .settings-row { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; align-items: center; }
+        .settings-row input { background: #010409; border: 1px solid #30363d; color: white; padding: 8px; border-radius: 6px; }
+        
+        .scanner-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+        .tab-btn { background: #21262d; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; color: white; }
+        .tab-btn.active { background: #2ea043; color: black; }
+        
+        .scanner-panel { display: none; }
+        .scanner-panel.active { display: block; }
+        
+        textarea, input { width: 100%; padding: 10px; margin-top: 10px; border-radius: 8px; background: #010409; border: 1px solid #30363d; color: white; }
     </style>
 </head>
-<body>
+<body class="dark">
     <div class="container">
         <div class="header">
-            <h2>💀 TROJAN MEGA SUITE 2099 💀</h2>
-            <div class="server-input">
-                <input type="text" id="serverIdInput" placeholder="🎯 Enter Server ID">
-                <button id="setServerBtn">✅ SET TARGET</button>
+            <h2>🔥 GRoup5br ULTIMATE SUITE 2099 🔥</h2>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="serverIdInput" placeholder="🎯 Server ID" style="padding: 8px; border-radius: 6px;">
+                <button id="setServerBtn" class="btn btn-success">SET</button>
+                <button id="themeBtn" class="theme-btn">🌓 THEME</button>
+                <button id="logoutBtn" class="btn btn-danger">LOGOUT</button>
             </div>
-            <button class="logout-btn" id="logoutBtn">⛔ LOGOUT</button>
         </div>
         
+        <!-- زر الإيقاف -->
+        <div style="background: #1a0000; border: 2px solid #ff0000; border-radius: 10px; padding: 15px; text-align: center; margin-bottom: 20px;">
+            <h3 style="color: #ff0000;">🛑 EMERGENCY STOP 🛑</h3>
+            <button id="emergencyStopBtn" class="stop-btn btn">⛔ STOP ALL NOW ⛔</button>
+        </div>
+        
+        <!-- إعدادات النيوك -->
         <div class="card">
-            <div class="card-title">💣 ULTRA NUKE (FLYING SPEED) 💣</div>
+            <div class="card-title">⚙️ NUKE CUSTOMIZATION</div>
+            <div class="settings-row">
+                <input type="text" id="serverNameSetting" placeholder="Server Name after Nuke" value="🔥-DESTROYED">
+                <input type="text" id="channelPrefixSetting" placeholder="Channel Prefix" value="💀-HACKED">
+                <input type="text" id="voicePrefixSetting" placeholder="Voice Prefix" value="🔊-VOID">
+                <input type="text" id="categoryPrefixSetting" placeholder="Category Prefix" value="📁-CAT">
+                <button id="saveSettingsBtn" class="btn btn-success">💾 SAVE</button>
+            </div>
+        </div>
+        
+        <!-- أزرار الهجوم -->
+        <div class="card">
+            <div class="card-title">💣 ATTACKS (PARALLEL - Promise.all)</div>
             <div class="btn-grid">
-                <button class="attack-btn" data-cmd="ultra-nuke">🔥 ULTRA NUKE (100+ ROOMS)</button>
-                <button class="attack-btn" data-cmd="mass-channels" data-count="200">📁 200 CHANNELS MASS</button>
-                <button class="attack-btn" data-cmd="mass-channels" data-count="500">🚀 500 CHANNELS EXTREME</button>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="card-title">👑 DESTRUCTION TOOLS</div>
-            <div class="btn-grid">
-                <button class="attack-btn" data-cmd="ban-all">🚫 BAN ALL MEMBERS</button>
-                <button class="attack-btn" data-cmd="kick-all">👢 KICK ALL MEMBERS</button>
-                <button class="attack-btn" data-cmd="delete-all-roles">🗑️ DELETE ALL ROLES</button>
-                <button class="attack-btn" data-cmd="role-elevate">👑 ELEVATE @everyone + GOD ROLE</button>
-                <button class="attack-btn" data-cmd="rename-everyone">✏️ RENAME ALL MEMBERS</button>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="card-title">📨 SPAM & FLOOD</div>
-            <div class="spam-area">
-                <input type="number" id="spamCount" placeholder="Count" value="100">
-                <input type="text" id="spamMsg" placeholder="Message" value="@everyone 🔥 TROJAN MEGA 2099 🔥">
-                <button class="attack-btn" data-cmd="spam">💬 TEXT SPAM</button>
-                <button class="attack-btn" data-cmd="webhook-spam">🪝 WEBHOOK SPAM</button>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="card-title">🔒 CHANNEL CONTROL</div>
-            <div class="btn-grid">
-                <button class="attack-btn" data-cmd="slowmode-all" data-seconds="21600">🐢 SLOWMODE 6 HOURS</button>
+                <button class="attack-btn" data-cmd="ultra-nuke">🔥 ULTRA NUKE (400+ ROOMS)</button>
+                <button class="attack-btn" data-cmd="mass-channels" data-count="200">📁 200 CHANNELS</button>
+                <button class="attack-btn" data-cmd="mass-channels" data-count="500">🚀 500 CHANNELS</button>
+                <button class="attack-btn" data-cmd="ban-all">🚫 BAN ALL</button>
+                <button class="attack-btn" data-cmd="kick-all">👢 KICK ALL</button>
+                <button class="attack-btn" data-cmd="delete-all-roles">🗑️ DELETE ROLES</button>
+                <button class="attack-btn" data-cmd="role-elevate">👑 ELEVATE @everyone</button>
+                <button class="attack-btn" data-cmd="rename-everyone">✏️ RENAME ALL</button>
+                <button class="attack-btn" data-cmd="lock-all">🔒 LOCK ALL</button>
+                <button class="attack-btn" data-cmd="slowmode-all" data-seconds="21600">🐢 SLOWMODE 6H</button>
                 <button class="attack-btn" data-cmd="slowmode-all" data-seconds="0">⚡ REMOVE SLOWMODE</button>
-                <button class="attack-btn" data-cmd="lock-all">🔒 LOCK ALL CHANNELS</button>
-                <button class="attack-btn" data-cmd="create-invite">🔗 CREATE INVITE LINK</button>
+                <button class="attack-btn" data-cmd="create-invite">🔗 INVITE LINK</button>
+                <button class="attack-btn" data-cmd="token-grab">🎫 GRAB TOKENS</button>
+            </div>
+            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                <input type="number" id="spamCount" placeholder="Count" value="100" style="flex:1">
+                <input type="text" id="spamMsg" placeholder="Message" value="@everyone 🔥 GRoup5br 2099 🔥" style="flex:2">
+                <button class="attack-btn" data-cmd="spam">💬 SPAM</button>
             </div>
         </div>
         
+        <!-- فاحص الملفات والروابط -->
         <div class="card">
-            <div class="card-title">🎯 INFORMATION & GRAB</div>
-            <div class="btn-grid">
-                <button class="attack-btn" data-cmd="token-grab">🎫 GRAB TOKENS (FAKE)</button>
+            <div class="card-title">🔍 SCANNER - Files / Code / Links</div>
+            <div class="scanner-tabs">
+                <button class="tab-btn active" data-tab="file">📁 FILE SCANNER</button>
+                <button class="tab-btn" data-tab="code">💻 CODE SCANNER</button>
+                <button class="tab-btn" data-tab="link">🔗 LINK SCANNER</button>
+            </div>
+            
+            <div id="filePanel" class="scanner-panel active">
+                <input type="file" id="fileInput">
+                <button id="scanFileBtn" class="btn btn-warning" style="margin-top: 10px;">🔍 SCAN FILE</button>
+                <div id="fileResult" style="margin-top: 10px; padding: 10px; background: #010409; border-radius: 8px;"></div>
+            </div>
+            
+            <div id="codePanel" class="scanner-panel">
+                <textarea id="codeInput" rows="5" placeholder="Paste code here..."></textarea>
+                <button id="scanCodeBtn" class="btn btn-warning" style="margin-top: 10px;">🔍 SCAN CODE</button>
+                <div id="codeResult" style="margin-top: 10px; padding: 10px; background: #010409; border-radius: 8px;"></div>
+            </div>
+            
+            <div id="linkPanel" class="scanner-panel">
+                <input type="text" id="linkInput" placeholder="https://example.com">
+                <button id="scanLinkBtn" class="btn btn-warning" style="margin-top: 10px;">🔍 SCAN LINK</button>
+                <div id="linkResult" style="margin-top: 10px; padding: 10px; background: #010409; border-radius: 8px;"></div>
             </div>
         </div>
         
+        <!-- المخرجات -->
         <div class="card">
             <div class="card-title">📟 OUTPUT LOG</div>
-            <div class="output" id="output">
-> Ready for destruction...\n> Please set Server ID first!
-            </div>
+            <div class="output" id="output">> GRoup5br 2099 Ready...\n> Set Server ID to start</div>
         </div>
     </div>
 
@@ -101,11 +157,8 @@
         }
         
         async function executeCommand(command, params = {}) {
-            if (!serverIdSet && command !== 'set-server') {
-                addOutput('❌ Please set Server ID first!');
-                return;
-            }
-            addOutput(`⚡ Executing: ${command}...`);
+            if (!serverIdSet) { addOutput('❌ Set Server ID first!'); return; }
+            addOutput(`⚡ Executing: ${command}`);
             try {
                 const res = await fetch('/api/execute', {
                     method: 'POST',
@@ -114,64 +167,125 @@
                 });
                 const data = await res.json();
                 addOutput(`✅ Result: ${JSON.stringify(data, null, 2)}`);
-            } catch(e) {
-                addOutput(`❌ Error: ${e.message}`);
-            }
+            } catch(e) { addOutput(`❌ Error: ${e.message}`); }
         }
         
-        // تعيين Server ID
-        document.getElementById('setServerBtn').addEventListener('click', async () => {
+        // تعيين السيرفر
+        document.getElementById('setServerBtn').onclick = async () => {
             const serverId = document.getElementById('serverIdInput').value.trim();
-            if (!serverId) {
-                addOutput('❌ Enter valid Server ID');
-                return;
-            }
+            if (!serverId) { addOutput('❌ Enter Server ID'); return; }
             const res = await fetch('/api/set-server', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ serverId })
             });
             const data = await res.json();
-            if (data.success) {
-                serverIdSet = true;
-                addOutput(`✅ Target Server ID set: ${serverId}`);
-            } else {
-                addOutput(`❌ ${data.error}`);
-            }
-        });
+            if (data.success) { serverIdSet = true; addOutput(`✅ Server ID set: ${serverId}`); }
+            else addOutput(`❌ ${data.error}`);
+        };
+        
+        // حفظ الإعدادات
+        document.getElementById('saveSettingsBtn').onclick = async () => {
+            const settings = {
+                nukeServerName: document.getElementById('serverNameSetting').value,
+                nukeChannelPrefix: document.getElementById('channelPrefixSetting').value,
+                nukeVoicePrefix: document.getElementById('voicePrefixSetting').value,
+                nukeCategoryPrefix: document.getElementById('categoryPrefixSetting').value
+            };
+            const res = await fetch('/api/save-settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(settings)
+            });
+            if ((await res.json()).success) addOutput('✅ Settings saved');
+        };
         
         // أزرار الهجوم
         document.querySelectorAll('.attack-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.onclick = () => {
                 const cmd = btn.getAttribute('data-cmd');
                 const params = {};
-                
-                if (btn.hasAttribute('data-count')) {
-                    params.count = parseInt(btn.getAttribute('data-count'));
-                }
-                if (btn.hasAttribute('data-seconds')) {
-                    params.seconds = parseInt(btn.getAttribute('data-seconds'));
-                }
+                if (btn.hasAttribute('data-count')) params.count = parseInt(btn.getAttribute('data-count'));
+                if (btn.hasAttribute('data-seconds')) params.seconds = parseInt(btn.getAttribute('data-seconds'));
                 if (cmd === 'spam') {
                     params.count = parseInt(document.getElementById('spamCount').value);
                     params.message = document.getElementById('spamMsg').value;
                 }
-                if (cmd === 'webhook-spam') {
-                    params.count = parseInt(document.getElementById('spamCount').value);
-                    params.message = document.getElementById('spamMsg').value;
-                }
-                if (cmd === 'rename-everyone') {
-                    params.name = document.getElementById('spamMsg').value || 'HACKED';
-                }
-                
+                if (cmd === 'rename-everyone') params.name = document.getElementById('spamMsg').value;
                 executeCommand(cmd, params);
-            });
+            };
         });
         
+        // Scanner tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.scanner-panel').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.getAttribute('data-tab') + 'Panel').classList.add('active');
+            };
+        });
+        
+        // فحص الملف
+        document.getElementById('scanFileBtn').onclick = async () => {
+            const file = document.getElementById('fileInput').files[0];
+            if (!file) { addOutput('❌ Select a file'); return; }
+            const formData = new FormData();
+            formData.append('file', file);
+            addOutput(`🔍 Scanning file: ${file.name}`);
+            const res = await fetch('/api/analyze-file', { method: 'POST', body: formData });
+            const data = await res.json();
+            document.getElementById('fileResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            addOutput(`📁 Scan result: ${data.message}`);
+        };
+        
+        // فحص الكود
+        document.getElementById('scanCodeBtn').onclick = async () => {
+            const code = document.getElementById('codeInput').value;
+            if (!code) { addOutput('❌ Enter code'); return; }
+            const res = await fetch('/api/analyze-code', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
+            const data = await res.json();
+            document.getElementById('codeResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            addOutput(`💻 Code scan: ${data.message}`);
+        };
+        
+        // فحص الرابط
+        document.getElementById('scanLinkBtn').onclick = async () => {
+            const url = document.getElementById('linkInput').value;
+            if (!url) { addOutput('❌ Enter URL'); return; }
+            const res = await fetch('/api/analyze-link', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
+            const data = await res.json();
+            document.getElementById('linkResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            addOutput(`🔗 Link scan: ${data.message}`);
+        };
+        
+        // الثيم
+        let isDark = true;
+        document.getElementById('themeBtn').onclick = () => {
+            isDark = !isDark;
+            document.body.className = isDark ? 'dark' : 'light';
+            fetch('/api/theme', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ theme: isDark ? 'dark' : 'light' }) });
+        };
+        
         // تسجيل الخروج
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
+        document.getElementById('logoutBtn').onclick = async () => {
             await fetch('/api/logout', { method: 'POST' });
             window.location.href = '/';
+        };
+        
+        document.getElementById('emergencyStopBtn').onclick = async () => {
+            await fetch('/api/stop', { method: 'POST' });
+            addOutput('🛑 EMERGENCY STOP ACTIVATED - Halting all operations');
+        };
+        
+        // تحميل الإعدادات
+        fetch('/api/get-settings').then(r => r.json()).then(data => {
+            if (data.success) {
+                document.getElementById('serverNameSetting').value = data.settings.nukeServerName;
+                document.getElementById('channelPrefixSetting').value = data.settings.nukeChannelPrefix;
+                document.getElementById('voicePrefixSetting').value = data.settings.nukeVoicePrefix;
+                document.getElementById('categoryPrefixSetting').value = data.settings.nukeCategoryPrefix;
+            }
         });
     </script>
 </body>
