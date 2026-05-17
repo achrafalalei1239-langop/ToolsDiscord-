@@ -2,7 +2,7 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>Trojan Mega 2099 - Login</title>
+    <title>GRoup5br - Login</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -21,58 +21,49 @@
             width: 450px;
             box-shadow: 0 0 50px rgba(255, 77, 77, 0.5);
         }
-        h1 { color: #ff4d4d; text-align: center; margin-bottom: 10px; font-size: 28px; }
+        h1 { color: #ff4d4d; text-align: center; margin-bottom: 10px; font-size: 32px; }
         .sub { color: #2ea043; text-align: center; margin-bottom: 30px; font-size: 12px; }
         .input-group { margin-bottom: 20px; }
         label { color: #2ea043; display: block; margin-bottom: 8px; font-weight: bold; }
         input { width: 100%; padding: 12px; background: #010409; border: 1px solid #30363d; color: #00ff99; border-radius: 8px; font-family: monospace; }
-        button { width: 100%; padding: 12px; background: #ff4d4d; border: none; color: white; font-weight: bold; font-size: 18px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
-        button:hover { background: #ff0000; box-shadow: 0 0 15px #ff0000; }
+        button { width: 100%; padding: 12px; background: #ff4d4d; border: none; color: white; font-weight: bold; font-size: 18px; border-radius: 8px; cursor: pointer; }
+        button:hover { background: #ff0000; }
         .error { color: #ff4d4d; margin-top: 15px; text-align: center; }
         .features { margin-top: 20px; font-size: 11px; color: #8b949e; text-align: center; }
     </style>
 </head>
 <body>
     <div class="login-box">
-        <h1>💀 TROJAN MEGA 2099 💀</h1>
-        <div class="sub">ULTRA NUKE • 200+ ROOMS • FLYING SPEED</div>
+        <h1>🔥 GRoup5br 🔥</h1>
+        <div class="sub">ULTIMATE SUITE 2099</div>
         <form id="loginForm">
             <div class="input-group">
                 <label>🔑 Discord Token</label>
-                <input type="password" id="token" placeholder="NzEwMjM0NTY3ODkwMTIzNDU2.xxxxxx" required>
+                <input type="password" id="token" required>
             </div>
             <div class="input-group">
                 <label>👤 Your Name</label>
                 <input type="text" id="username" placeholder="HackerName">
             </div>
-            <button type="submit">⚡ ENTER THE SYSTEM ⚡</button>
+            <button type="submit">⚡ ENTER ⚡</button>
         </form>
         <div class="error" id="errorMsg"></div>
         <div class="features">
-            🔥 100+ CHANNELS IN SECONDS • WEBHOOK SPAM • BAN ALL • RENAME ALL • SLOWMODE • LOCK ALL 🔥
+            🔥 Parallel Execution • Custom Nuke Names • File/Code/Link Scanner • Theme Switcher 🔥
         </div>
     </div>
-
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
-            const token = document.getElementById('token').value;
-            const username = document.getElementById('username').value || 'Anonymous';
-            
             const res = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ discordToken: token, username })
+                body: JSON.stringify({ discordToken: document.getElementById('token').value, username: document.getElementById('username').value || 'Anonymous' })
             });
-            
             const data = await res.json();
-            
-            if (data.success) {
-                window.location.href = '/dashboard';
-            } else {
-                document.getElementById('errorMsg').innerText = data.error;
-            }
-        });
+            if (data.success) window.location.href = '/dashboard';
+            else document.getElementById('errorMsg').innerText = data.error;
+        };
     </script>
 </body>
 </html>
