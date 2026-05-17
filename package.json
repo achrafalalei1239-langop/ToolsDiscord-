@@ -1,15 +1,14 @@
 {
-  "name": "discord-tools-site",
+  "name": "trojan-public-commander",
   "version": "1.0.0",
-  "description": "Discord Nuke & Copy Tools",
+  "description": "Public Trojan Commander 2099",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "axios": "^1.4.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.0.3"
+    "express-session": "^1.17.3",
+    "discord.js": "^14.14.1"
   }
 }
